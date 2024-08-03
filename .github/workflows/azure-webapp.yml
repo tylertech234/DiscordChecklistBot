@@ -1,5 +1,6 @@
 name: Deploy to Azure Web App
 
+# Trigger the workflow on push to the main branch
 on:
   push:
     branches:
@@ -8,24 +9,48 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: azure
 
     steps:
+      # Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
 
+      # Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Lint the Python code
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        continue-on-error: true # Allow the workflow to continue even if linting fails
+
+      # Run tests
+      - name: Run tests
+        run: |
+          # Install pytest or any other test framework
+          pip install pytest
+          pytest
+
+      # Deploy to Azure Web App
       - name: Azure WebApp Deploy
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'DiscordChecklistBot'
           slot-name: 'production'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+
+      # Notify deployment status
+      - name: Notify deployment status
+        if: success()
+        run: echo "Deployment to Azure WebApp was successful!"
