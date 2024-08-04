@@ -21,13 +21,10 @@ jobs:
         with:
           python-version: '3.8'
 
-      # Create a virtual environment
-      - name: Create virtual environment
-        run: python -m venv antenv
-
-      # Activate the virtual environment and install dependencies
+      # Create and activate a virtual environment, then install dependencies
       - name: Install dependencies
         run: |
+          python -m venv antenv
           source antenv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -49,8 +46,7 @@ jobs:
 
       # Archive the virtual environment
       - name: Archive virtual environment
-        run: |
-          tar -czf antenv.tar.gz antenv
+        run: tar -czf antenv.tar.gz antenv
 
       # Deploy to Azure Web App
       - name: Azure WebApp Deploy
@@ -59,9 +55,6 @@ jobs:
           app-name: 'DiscordChecklistBot'
           slot-name: 'production'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        env:
-          VIRTUAL_ENV: antenv
-          PATH: antenv/bin:$PATH
 
       # Notify deployment status
       - name: Notify deployment status
