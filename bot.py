@@ -1,19 +1,13 @@
 import os
+import logging
 from dotenv import load_dotenv
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 from opencensus.ext.azure.trace_exporter import AzureExporter
 from opencensus.ext.requests import requests_trace
 from opencensus.trace.samplers import ProbabilitySampler
 from opencensus.trace.tracer import Tracer
-import logging
 import discord
 from discord.ext import commands
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, filename='app.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
-
-logging.info('This is an informational message.')
-logging.error('This is an error message.')
 
 # Load the bot token and App Insights Instrumentation Key from environment variables
 load_dotenv()
@@ -40,6 +34,12 @@ async def on_ready():
     """Event called when the bot has successfully connected to Discord."""
     logging.info(f'Logged in as {bot.user}')
     print(f'Logged in as {bot.user}')
+
+@bot.event
+async def on_command_error(ctx, error):
+    """Event called when a command error occurs."""
+    logging.error(f'Error in command {ctx.command}: {error}')
+    await ctx.send(f'An error occurred: {error}')
 
 @bot.command(name='create_checklist')
 async def create_checklist(ctx, *, title):
