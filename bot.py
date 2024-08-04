@@ -9,13 +9,15 @@ from opencensus.trace.tracer import Tracer
 import discord
 from discord.ext import commands
 
-# Load the bot token and App Insights Instrumentation Key from environment variables
+# Load environment variables
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 INSTRUMENTATION_KEY = os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY')
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, handlers=[AzureLogHandler(connection_string=f'InstrumentationKey={INSTRUMENTATION_KEY}')])
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.addHandler(AzureLogHandler(connection_string=f'InstrumentationKey={INSTRUMENTATION_KEY}'))
 
 # Set up tracing
 tracer = Tracer(exporter=AzureExporter(connection_string=f'InstrumentationKey={INSTRUMENTATION_KEY}'), sampler=ProbabilitySampler(1.0))
@@ -32,13 +34,12 @@ checklists = {}
 @bot.event
 async def on_ready():
     """Event called when the bot has successfully connected to Discord."""
-    logging.info(f'Logged in as {bot.user}')
-    print(f'Logged in as {bot.user}')
+    logger.info(f'Logged in as {bot.user}')
 
 @bot.event
 async def on_command_error(ctx, error):
     """Event called when a command error occurs."""
-    logging.error(f'Error in command {ctx.command}: {error}')
+    logger.error(f'Error in command {ctx.command}: {error}')
     await ctx.send(f'An error occurred: {error}')
 
 @bot.command(name='create_checklist')
@@ -47,10 +48,10 @@ async def create_checklist(ctx, *, title):
     try:
         checklists[ctx.channel.id] = {'title': title, 'items': []}
         await ctx.send(f'Checklist **{title}** created! Use `!add_item Your Item` to add items.')
-        logging.info(f'Checklist created: {title}')
+        logger.info(f'Checklist created: {title}')
     except Exception as e:
         await ctx.send("An error occurred while creating the checklist.")
-        logging.error(f"Error in create_checklist: {e}")
+        logger.error(f"Error in create_checklist: {e}")
 
 @bot.command(name='add_item')
 async def add_item(ctx, *, item):
@@ -63,10 +64,10 @@ async def add_item(ctx, *, item):
         checklists[ctx.channel.id]['items'].append({'item': item, 'checked': False})
         await ctx.send(f'Added item: {item}')
         await show_checklist(ctx)
-        logging.info(f'Item added: {item}')
+        logger.info(f'Item added: {item}')
     except Exception as e:
         await ctx.send("An error occurred while adding the item.")
-        logging.error(f"Error in add_item: {e}")
+        logger.error(f"Error in add_item: {e}")
 
 @bot.command(name='show_checklist')
 async def show_checklist(ctx):
@@ -89,10 +90,10 @@ async def show_checklist(ctx):
         for idx in range(len(checklist['items'])):
             await message.add_reaction('⬜')
             await message.add_reaction('✅')
-        logging.info('Checklist displayed')
+        logger.info('Checklist displayed')
     except Exception as e:
         await ctx.send("An error occurred while displaying the checklist.")
-        logging.error(f"Error in show_checklist: {e}")
+        logger.error(f"Error in show_checklist: {e}")
 
 @bot.event
 async def on_reaction_add(reaction, user):
@@ -122,12 +123,12 @@ async def on_reaction_add(reaction, user):
 
         await message.delete()
         await show_checklist(ctx)
-        logging.info('Reaction added and checklist updated')
+        logger.info('Reaction added and checklist updated')
     except Exception as e:
-        logging.error(f"Error in on_reaction_add: {e}")
+        logger.error(f"Error in on_reaction_add: {e}")
 
 # Run the bot
 try:
     bot.run(TOKEN)
 except Exception as e:
-    logging.error(f"Error starting the bot: {e}")
+    logger.error(f"Error starting the bot: {e}")
