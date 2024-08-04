@@ -47,11 +47,6 @@ jobs:
           pip install pytest
           pytest || echo "No tests found, continuing..."
 
-      # Package the app and the virtual environment
-      - name: Package app
-        run: |
-          zip -r app.zip . -x ".git/*" -x "antenv/lib/*" -x "antenv/include/*" -x "antenv/bin/*" -x "antenv/share/*" -x "antenv/pyvenv.cfg"
-
       # Deploy to Azure Web App
       - name: Azure WebApp Deploy
         uses: azure/webapps-deploy@v2
@@ -59,7 +54,6 @@ jobs:
           app-name: 'DiscordChecklistBot'
           slot-name: 'production'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: app.zip
 
       # Notify deployment status
       - name: Notify deployment status
