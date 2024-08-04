@@ -1,5 +1,5 @@
 discord.py
-python-dotenv
 opencensus-ext-azure
 opencensus-ext-requests
 pytest
+python-dotenv

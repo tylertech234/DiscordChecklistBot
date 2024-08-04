@@ -47,6 +47,11 @@ jobs:
           pip install pytest
           pytest || echo "No tests found, continuing..."
 
+      # Archive the virtual environment
+      - name: Archive virtual environment
+        run: |
+          tar -czf antenv.tar.gz antenv
+
       # Deploy to Azure Web App
       - name: Azure WebApp Deploy
         uses: azure/webapps-deploy@v2
@@ -54,6 +59,9 @@ jobs:
           app-name: 'DiscordChecklistBot'
           slot-name: 'production'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        env:
+          VIRTUAL_ENV: antenv
+          PATH: antenv/bin:$PATH
 
       # Notify deployment status
       - name: Notify deployment status
