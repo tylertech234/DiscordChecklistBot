@@ -21,15 +21,21 @@ jobs:
         with:
           python-version: '3.8'
 
-      # Install dependencies
+      # Create a virtual environment
+      - name: Create virtual environment
+        run: python -m venv antenv
+
+      # Activate the virtual environment and install dependencies
       - name: Install dependencies
         run: |
+          source antenv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       # Lint the Python code
       - name: Lint with flake8
         run: |
+          source antenv/bin/activate
           pip install flake8
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         continue-on-error: true # Allow the workflow to continue even if linting fails
@@ -37,9 +43,14 @@ jobs:
       # Run tests
       - name: Run tests
         run: |
-          # Install pytest or any other test framework
+          source antenv/bin/activate
           pip install pytest
           pytest || echo "No tests found, continuing..."
+
+      # Package the app and the virtual environment
+      - name: Package app
+        run: |
+          zip -r app.zip . -x ".git/*" -x "antenv/lib/*" -x "antenv/include/*" -x "antenv/bin/*" -x "antenv/share/*" -x "antenv/pyvenv.cfg"
 
       # Deploy to Azure Web App
       - name: Azure WebApp Deploy
@@ -48,6 +59,7 @@ jobs:
           app-name: 'DiscordChecklistBot'
           slot-name: 'production'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: app.zip
 
       # Notify deployment status
       - name: Notify deployment status
