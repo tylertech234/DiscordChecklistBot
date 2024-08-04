@@ -1,5 +1,5 @@
-discord.py
-opencensus-ext-azure
-opencensus-ext-requests
-pytest
-python-dotenv
+discord.py==1.7.3
+opencensus-ext-azure==1.0.7
+opencensus-ext-requests==0.7.3
+pytest==6.2.4
+python-dotenv==0.19.2
